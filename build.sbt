@@ -1,0 +1,25 @@
+organization := "address-service"
+
+name := "address-service"
+
+version := "0.1-SNAPSHOT"
+
+scalaVersion := "2.11.8"
+
+scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
+
+resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+
+libraryDependencies ++= {
+  val akkaV = "2.4.11"
+
+  Seq(
+    "com.typesafe"                  % "config"                            % "1.2.1",
+    "com.typesafe.akka"            %% "akka-actor"                        % akkaV,
+    "com.typesafe.akka"            %% "akka-http-experimental"            % akkaV,
+    "com.typesafe.akka"            %% "akka-http-core"                    % akkaV,
+    "com.typesafe.akka"            %% "akka-http-testkit"                 % akkaV,
+    "com.typesafe.akka"            %% "akka-http-spray-json-experimental" % akkaV,
+    "org.reactivemongo"            %% "reactivemongo"                     % "0.12.0"
+  )
+}
