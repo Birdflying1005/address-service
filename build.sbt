@@ -12,6 +12,7 @@ resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositor
 
 libraryDependencies ++= {
   val akkaV = "2.4.11"
+  val reactiveMongoV = "0.12.0"
 
   Seq(
     "com.typesafe"                  % "config"                            % "1.2.1",
@@ -20,6 +21,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"            %% "akka-http-core"                    % akkaV,
     "com.typesafe.akka"            %% "akka-http-testkit"                 % akkaV,
     "com.typesafe.akka"            %% "akka-http-spray-json-experimental" % akkaV,
-    "org.reactivemongo"            %% "reactivemongo"                     % "0.12.0"
+    "org.reactivemongo"            %% "reactivemongo"                     % reactiveMongoV,
+    "org.reactivemongo"            %% "reactivemongo-akkastream"          % reactiveMongoV
   )
 }
