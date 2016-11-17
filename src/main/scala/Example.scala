@@ -8,7 +8,6 @@ import akka.util.ByteString
 
 import scala.collection.JavaConversions._
 
-//LON,LAT,NUMBER,STREET,UNIT,CITY,DISTRICT,REGION,POSTCODE,ID,HASH
 case class Address(longitude: String, latitude: String, streetNo: String, street: String,
                    unit: String, city: String, distinct: String, region: String, postCode: String)
 
@@ -16,7 +15,7 @@ object Example extends App {
   implicit val system = ActorSystem("system")
   implicit val materializer = ActorMaterializer()
 
-  def getCityAddressData(path: String = "/home/focusj/workspace/datasource/us"): Iterable[(String, Iterable[Path])] = {
+  def stateWithCities(path: String): Iterable[(String, Iterable[Path])] = {
     Files.newDirectoryStream(Paths.get(path)).map { statePath ⇒
       val state = statePath.getFileName.toString.toUpperCase()
 
@@ -25,30 +24,42 @@ object Example extends App {
           path.getFileName.toString.endsWith(".csv")
         }
       }
-
-      state -> Files.newDirectoryStream(statePath, filter).map(_.getFileName)
+      state -> Files.newDirectoryStream(statePath, filter).map(_.toAbsolutePath)
     }
   }
 
-  val bytesToString = Flow[ByteString]
-    .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
-    .map(_.utf8String)
+  def processCityDate(state: String, city: String, cityDataPath: Path) = {
+    val bytesToString = Flow[ByteString]
+      .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
+      .map(_.utf8String)
 
-  val toEntity = Flow.fromGraph(GraphDSL.create() { implicit b ⇒
-    val flow = b.add(Flow[String].map(x ⇒ {
-      println(x)
-      val Array(lon, lat, number, street, unit, _, district, _, postcode, _, _) = x.split(",")
-      Address(lon, lat, number, street, unit, "honolulu", district, "HI", postcode)
-    }))
+    val toEntity = Flow.fromGraph(GraphDSL.create() { implicit b ⇒
+      val flow = b.add(Flow[String].map(x ⇒ {
+        val Array(lon, lat, number, street, unit, _, district, _, postcode, _, _) = x.split(",")
+        Address(lon, lat, number, street, unit, city, district, state, postcode)
+      }))
 
-    FlowShape(flow.in, flow.out)
-  })
+      FlowShape(flow.in, flow.out)
+    })
 
-  FileIO
-    .fromPath(Paths.get("/home/focusj/workspace/datasource/us/hi/honolulu.csv"))
-    .via(bytesToString)
-    .drop(1)
-    .via(toEntity)
-    .runWith(Sink.foreach(println))
+    FileIO
+      .fromPath(cityDataPath)
+      .via(bytesToString)
+      .drop(1)
+      .via(toEntity)
+      .runWith(Sink.foreach(println))
+  }
 
+  def fileName(path: Path) = {
+    val Array(fileName, _) = path.getFileName.toString.split("\\.")
+    fileName
+  }
+
+  stateWithCities("/home/focusj/workspace/datasource/us").foreach {
+    case (state, cityDataSet) ⇒
+      cityDataSet.foreach { cityDataPath ⇒
+        println(state, fileName(cityDataPath))
+        processCityDate(state, fileName(cityDataPath), cityDataPath)
+      }
+  }
 }
