@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 case class Address(longitude: String, latitude: String, streetNo: String, street: String,
                    unit: String, city: String, distinct: String, region: String, postCode: String)
 
-object Example extends App {
+object Example_01 extends App {
   implicit val system = ActorSystem("system")
   implicit val materializer = ActorMaterializer()
 
