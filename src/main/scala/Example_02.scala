@@ -10,14 +10,13 @@ import akka.util.ByteString
 import scala.collection.JavaConversions._
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
+import scala.util.Try
 
 object Example_02 extends App {
   implicit val system = ActorSystem("system")
   implicit val materializer = ActorMaterializer()
 
   import system.dispatcher
-
-  val start = System.currentTimeMillis()
 
   RunnableGraph.fromGraph(
     GraphDSL.create() { implicit b ⇒
@@ -41,15 +40,19 @@ object Example_02 extends App {
             case (state, (city, cityDataPath)) ⇒
               val bytesToString = Flow[ByteString]
                 .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
+                .filter(_.nonEmpty)
                 .map(_.utf8String)
 
               val toEntity = Flow.fromGraph(GraphDSL.create() { implicit b ⇒
-                val flow = b.add(Flow[String].map(x ⇒ {
-                  val Array(lon, lat, number, street, unit, _, district, _, postcode, _, _) = x.split(",")
-                  //println(street)
-                  Address(lon, lat, number, street, unit, city, district, state, postcode)
-                }))
-
+                val flow = b.add(
+                  Flow[String]
+                    .map(x ⇒ Try {
+                      val Array(lon, lat, number, street, unit, _, district, _, postcode, _, _) = x.split(",")
+                      Address(lon, lat, number, street, unit, city, district, state, postcode)
+                    })
+                    .filter(_.isSuccess)
+                    .map(_.get)
+                )
                 FlowShape(flow.in, flow.out)
               })
 
@@ -63,16 +66,14 @@ object Example_02 extends App {
           Future.sequence(map).map(_.flatten)
       }
 
-      val countFuture = Source.single(Paths.get("/home/focusj/workspace/datasource/us"))
+      val countFuture = Source.single(Paths.get("/home/focusj/WorkSpace/DataSource/us"))
         .via(citiesData)
         .via(addresses)
         .runFold(0)((r, e) ⇒ r + e.size)
 
-      countFuture.onComplete(println)
+      countFuture.onComplete(x ⇒ println(s"total address: $x"))
 
       ClosedShape
     }).run()
-
-  println("cost: " + (System.currentTimeMillis() - start))
 
 }
