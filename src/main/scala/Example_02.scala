@@ -66,7 +66,7 @@ object Example_02 extends App {
           Future.sequence(map).map(_.flatten)
       }
 
-      val countFuture = Source.single(Paths.get("/home/focusj/WorkSpace/DataSource/us"))
+      val countFuture = Source.single(Paths.get("/home/focusj/workspace/datasource/us"))
         .via(citiesData)
         .via(addresses)
         .runFold(0)((r, e) ⇒ r + e.size)
