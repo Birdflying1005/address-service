@@ -22,6 +22,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"            %% "akka-http-testkit"                 % akkaV,
     "com.typesafe.akka"            %% "akka-http-spray-json-experimental" % akkaV,
     "org.reactivemongo"            %% "reactivemongo"                     % reactiveMongoV,
-    "org.reactivemongo"            %% "reactivemongo-akkastream"          % reactiveMongoV
+    "org.reactivemongo"            %% "reactivemongo-akkastream"          % reactiveMongoV,
+    "io.netty"                      % "netty-all"                         % "4.1.6.Final"
   )
 }
