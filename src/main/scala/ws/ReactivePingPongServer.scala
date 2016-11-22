@@ -37,7 +37,7 @@ object ReactivePingPongServer extends App {
             case Success(_) ⇒
               println("Closing connection")
             case Failure(e) ⇒
-              println("Closing connection {} due to error: {}", e)
+              println(s"Closing connection $remoteAddress due to error: $e")
           }
       }
 
