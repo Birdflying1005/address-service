@@ -7,7 +7,7 @@ import akka.io.{IO, Tcp}
 import akka.util.ByteString
 
 
-class SimplisticHandler extends Actor {
+class PingPongMsgHandler extends Actor {
 
   import Tcp._
 
@@ -19,7 +19,7 @@ class SimplisticHandler extends Actor {
   }
 }
 
-class Server extends Actor {
+class PingPongServer extends Actor {
 
   import Tcp._
   import context.system
@@ -33,7 +33,7 @@ class Server extends Actor {
     case CommandFailed(_: Bind) ⇒ context stop self
 
     case c@Connected(remote, local) ⇒
-      val handler = context.actorOf(Props[SimplisticHandler])
+      val handler = context.actorOf(Props[PingPongMsgHandler])
       sender() ! Register(handler)
   }
 }
@@ -42,6 +42,6 @@ object EchoServer extends App {
 
   val system = ActorSystem("tcp-server")
 
-  system.actorOf(Props[Server], "serer")
+  system.actorOf(Props[PingPongServer], "serer")
 
 }

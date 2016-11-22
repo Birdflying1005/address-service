@@ -12,11 +12,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 /**
  * 丢弃任何进入的数据
  */
-public class DiscardServer {
+public class NettyTcpServer {
 
     private int port;
 
-    public DiscardServer(int port) {
+    public NettyTcpServer(int port) {
         this.port = port;
     }
 
@@ -30,7 +30,7 @@ public class DiscardServer {
              .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
-                     ch.pipeline().addLast(new DiscardServerHandler());
+                     ch.pipeline().addLast(new MessageHandler());
                  }
              })
              .option(ChannelOption.SO_BACKLOG, 128)          // (5)
@@ -55,6 +55,6 @@ public class DiscardServer {
         } else {
             port = 8080;
         }
-        new DiscardServer(port).run();
+        new NettyTcpServer(port).run();
     }
 }
