@@ -5,7 +5,7 @@ import akka.stream._
 import akka.stream.scaladsl.{Flow, Framing, Sink, Source, Tcp}
 import akka.util.ByteString
 
-object StreamExample extends App {
+object StreamTcpClient extends App {
   implicit val system = ActorSystem("system")
   implicit val materializer = ActorMaterializer()
 
@@ -14,8 +14,6 @@ object StreamExample extends App {
   val parse = Flow[String].takeWhile(_ != "q")
     .concat(Source.single("BYE"))
     .map(elem => ByteString(s"$elem\n"))
-
-  var r = 0
 
   val flow = Flow[ByteString]
     .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
