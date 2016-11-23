@@ -1,4 +1,4 @@
-package ws;
+package socket.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;

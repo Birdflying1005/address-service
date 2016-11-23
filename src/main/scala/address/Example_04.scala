@@ -1,11 +1,12 @@
+package address
+
 import java.nio.file.DirectoryStream.Filter
 import java.nio.file.{Files, Path, Paths}
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.event.Logging
 import akka.stream.scaladsl.{FileIO, Flow, Framing, GraphDSL, Sink, Source}
-import akka.stream.{ActorMaterializer, Attributes, FlowShape}
+import akka.stream.{ActorMaterializer, FlowShape}
 import akka.util.ByteString
 
 import scala.collection.JavaConversions._

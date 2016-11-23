@@ -1,4 +1,4 @@
-package ws
+package socket.server
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Tcp.{IncomingConnection, ServerBinding}

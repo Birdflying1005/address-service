@@ -1,8 +1,8 @@
-package ws
+package socket.client
 
 import akka.actor.ActorSystem
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Framing, Sink, Source, Tcp}
+import akka.stream.scaladsl.{Flow, Framing, Source, Tcp}
 import akka.util.ByteString
 
 object StreamTcpClient extends App {

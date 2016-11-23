@@ -1,4 +1,4 @@
-package ws
+package socket.client
 
 import java.net.InetSocketAddress
 
