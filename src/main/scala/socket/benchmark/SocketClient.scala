@@ -12,18 +12,12 @@ class SocketClient(val serverAddress: InetSocketAddress, msgCount: Int) {
   }
 
   def sendAndForgetBlocking(msg: String) = {
-    var counter = 0
-    val snapshotInterval = 1000
-    println(s"Sending $msgCount messages:")
-    println(s"${"=" * (msgCount / snapshotInterval)}")
     val (elapsed, _) = measure {
       1 to msgCount foreach { i =>
         writeBlockingMsg(s"$i$msg")
-        counter += 1
-        if (counter % snapshotInterval == 0) print(".")
       }
     }
-    println(s"\n=> Total sent: $msgCount, elapsed $elapsed ms, tps ${msgCount.toDouble / elapsed * 1000}")
+    elapsed
   }
 
   def close() = serverSocket.close()
