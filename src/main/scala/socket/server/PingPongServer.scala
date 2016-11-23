@@ -12,9 +12,7 @@ class PingPongMsgHandler extends Actor {
   import Tcp._
 
   def receive = {
-    case Received(data) ⇒
-      println(s"server received msg: ${data.utf8String}")
-      sender() ! Write(ByteString("Pong"))
+    case Received(data) ⇒ sender() ! Write(ByteString("Pong"))
     case PeerClosed     ⇒ context stop self
   }
 }
@@ -27,18 +25,15 @@ class PingPongServer extends Actor {
   IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", 8080))
 
   def receive = {
-    case b@Bound(localAddress) ⇒
-      println("server is start up ...")
-
-    case CommandFailed(_: Bind) ⇒ context stop self
-
-    case c@Connected(remote, local) ⇒
+    case Bound(localAddress)      ⇒ println("server is start up ...")
+    case CommandFailed(_: Bind)   ⇒ context stop self
+    case Connected(remote, local) ⇒
       val handler = context.actorOf(Props[PingPongMsgHandler])
       sender() ! Register(handler)
   }
 }
 
-object EchoServer extends App {
+object PingPongServer extends App {
 
   val system = ActorSystem("tcp-server")
 
