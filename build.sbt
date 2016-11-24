@@ -15,6 +15,7 @@ libraryDependencies ++= {
   val reactiveMongoV = "0.12.0"
 
   Seq(
+    "io.netty"                      % "netty-all"                         % "4.1.6.Final",
     "com.typesafe"                  % "config"                            % "1.2.1",
     "com.typesafe.akka"            %% "akka-actor"                        % akkaV,
     "com.typesafe.akka"            %% "akka-http-experimental"            % akkaV,
@@ -23,6 +24,6 @@ libraryDependencies ++= {
     "com.typesafe.akka"            %% "akka-http-spray-json-experimental" % akkaV,
     "org.reactivemongo"            %% "reactivemongo"                     % reactiveMongoV,
     "org.reactivemongo"            %% "reactivemongo-akkastream"          % reactiveMongoV,
-    "io.netty"                      % "netty-all"                         % "4.1.6.Final"
+    "org.scodec"                   %% "scodec-bits"                       % "1.1.2"
   )
 }
