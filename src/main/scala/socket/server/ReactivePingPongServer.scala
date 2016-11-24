@@ -20,15 +20,11 @@ object ReactivePingPongServer extends App {
     case (conn@Tcp.IncomingConnection(localAddress, remoteAddress, flow)) ⇒
       println(s"new connection comes in: $remoteAddress")
 
-      val welcome = Source.single(s"Welcome to: $localAddress, you are: $remoteAddress!")
-
-      val f1 = Flow[ByteString]
+      val toStringFlow = Flow[ByteString]
         .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
         .map(_.utf8String)
-
-      val f2 = Flow[String].merge(welcome)
-      val f3 = Flow[String].map(_ + "\n").map(ByteString(_))
-
+      val welcomeFlow = Flow[String].merge(Source.single(s"Welcome to: $localAddress, you are: $remoteAddress!"))
+      val toByteFlow = Flow[String].map(_ + "\n").map(ByteString(_))
 
       val completeSink = Sink.onComplete {
         case res ⇒
@@ -49,7 +45,7 @@ object ReactivePingPongServer extends App {
         val bcast = b.add(Broadcast[ByteString](2))
 
         bcast.out(0) ~> complete
-        bcast.out(1) ~> f1 ~> f2 ~> f3 ~> merge
+        bcast.out(1) ~> toStringFlow ~> welcomeFlow ~> toByteFlow ~> merge
 
         FlowShape(bcast.in, merge.out)
       })
@@ -69,7 +65,8 @@ object ReactivePingPongServer extends App {
         })
       }
 
-      flow.join(balancer(messageHandler, 200)).run()
+      val pongFlow = Flow[ByteString].map(_ => ByteString("pong\n"))
+      flow.join(pongFlow).run()
   }
 
 }
