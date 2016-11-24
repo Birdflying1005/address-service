@@ -28,6 +28,8 @@ class PingPongServer extends Actor {
     case Bound(localAddress)      ⇒ println("server is start up ...")
     case CommandFailed(_: Bind)   ⇒ context stop self
     case Connected(remote, local) ⇒
+      println(s"new connection comes in: $remote")
+
       val handler = context.actorOf(Props[PingPongMsgHandler])
       sender() ! Register(handler)
   }

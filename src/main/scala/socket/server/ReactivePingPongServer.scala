@@ -1,8 +1,9 @@
 package socket.server
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Tcp.{IncomingConnection, ServerBinding}
-import akka.stream.scaladsl.{Broadcast, Flow, Framing, GraphDSL, Sink, Source, Tcp}
+import akka.stream.scaladsl.{Balance, Broadcast, Flow, Framing, GraphDSL, Merge, Sink, Source, Tcp}
 import akka.stream.{ActorMaterializer, FlowShape}
 import akka.util.ByteString
 
@@ -19,17 +20,15 @@ object ReactivePingPongServer extends App {
     case (conn@Tcp.IncomingConnection(localAddress, remoteAddress, flow)) ⇒
       println(s"new connection comes in: $remoteAddress")
 
-      val commandParser = Flow[String].takeWhile(_ != "BYE").map(_ + "!")
-
       val welcome = Source.single(s"Welcome to: $localAddress, you are: $remoteAddress!")
 
-      val messageFlow = Flow[ByteString]
+      val f1 = Flow[ByteString]
         .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
         .map(_.utf8String)
-        .via(commandParser)
-        .merge(welcome)
-        .map(_ + "\n")
-        .map(ByteString(_))
+
+      val f2 = Flow[String].merge(welcome)
+      val f3 = Flow[String].map(_ + "\n").map(ByteString(_))
+
 
       val completeSink = Sink.onComplete {
         case res ⇒
@@ -45,17 +44,32 @@ object ReactivePingPongServer extends App {
         import GraphDSL.Implicits._
 
         val complete = b.add(completeSink)
-        val message = b.add(messageFlow)
+        val merge = b.add(Merge[ByteString](1))
 
         val bcast = b.add(Broadcast[ByteString](2))
 
-        bcast ~> complete
-        bcast ~> message
+        bcast.out(0) ~> complete
+        bcast.out(1) ~> f1 ~> f2 ~> f3 ~> merge
 
-        FlowShape(bcast.in, message.out)
+        FlowShape(bcast.in, merge.out)
       })
 
-      flow.join(messageHandler).run()
+      def balancer[In, Out](worker: Flow[In, Out, Any], workerCount: Int): Flow[In, Out, NotUsed] = {
+        import GraphDSL.Implicits._
+
+        Flow.fromGraph(GraphDSL.create() { implicit b =>
+          val balancer = b.add(Balance[In](workerCount, waitForAllDownstreams = true))
+          val merge = b.add(Merge[Out](workerCount))
+
+          for (_ <- 1 to workerCount) {
+            balancer ~> worker.async ~> merge
+          }
+
+          FlowShape(balancer.in, merge.out)
+        })
+      }
+
+      flow.join(balancer(messageHandler, 200)).run()
   }
 
 }

@@ -30,6 +30,8 @@ public class NettyTcpServer {
              .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
+                     System.out.println("new connection comes in: " + ch.remoteAddress().toString());
+
                      ch.pipeline().addLast(new MessageHandler());
                  }
              })
